@@ -11,8 +11,7 @@
     "core": "npm --prefix ../app-core ci && npm --prefix ../app-core run build && node -e \"require('fs').cpSync('../app-core/dist','dist/core',{recursive:true})\"",
     "build": "npm run core && tsc",
     "start": "npm run build && electron .",
-    "dist": "npm run build && electron-builder --win --publish never",
-    "release": "npm run build && electron-builder --win --publish always"
+    "dist": "npm run build && electron-builder --win --publish never"
   },
   "dependencies": {
     "electron-updater": "^6.8.9"

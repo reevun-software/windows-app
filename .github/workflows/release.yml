@@ -20,6 +20,8 @@ permissions:
 jobs:
   release:
     runs-on: windows-latest
+    env:
+      VERSION: 1.0.${{ github.run_number }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -34,12 +36,20 @@ jobs:
           node-version: 22
       - name: Version
         working-directory: windows-app
-        run: npm version "1.0.${{ github.run_number }}" --no-git-tag-version
+        run: npm version "${{ env.VERSION }}" --no-git-tag-version
       - name: Install
         working-directory: windows-app
         run: npm ci
-      - name: Build and publish
+      - name: Build
         working-directory: windows-app
+        run: npm run dist
+      # One call creates the release with every file at once: the installer,
+      # its block map and latest.yml, which installed apps read for updates.
+      - name: Publish
+        working-directory: windows-app
+        shell: bash
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run release
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create "v${{ env.VERSION }}" --title "Reevun ${{ env.VERSION }}" --notes "" --latest
+          "release/Reevun-Setup-${{ env.VERSION }}.exe" "release/Reevun-Setup-${{ env.VERSION }}.exe.blockmap" release/latest.yml

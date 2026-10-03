@@ -31,7 +31,7 @@
     "win": {
       "target": [{ "target": "nsis", "arch": ["x64"] }],
       "icon": "build/icon.ico",
-      "artifactName": "Reevun-Setup-${version}.${ext}"
+      "artifactName": "Reevun_Setup.${ext}"
     },
     "nsis": {
       "oneClick": false,

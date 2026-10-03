@@ -43,8 +43,10 @@ jobs:
       - name: Build
         working-directory: windows-app
         run: npm run dist
-      # One call creates the release with every file at once: the installer,
-      # its block map and latest.yml, which installed apps read for updates.
+      # One call creates the release with both files at once: the installer
+      # (always Reevun_Setup.exe, so .../releases/latest/download/Reevun_Setup.exe
+      # is a permanent download link) and latest.yml, which installed apps read
+      # for updates.
       - name: Publish
         working-directory: windows-app
         shell: bash
@@ -52,4 +54,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: >
           gh release create "v${{ env.VERSION }}" --title "Reevun ${{ env.VERSION }}" --notes "" --latest
-          "release/Reevun-Setup-${{ env.VERSION }}.exe" "release/Reevun-Setup-${{ env.VERSION }}.exe.blockmap" release/latest.yml
+          release/Reevun_Setup.exe release/latest.yml

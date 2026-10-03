@@ -54,7 +54,7 @@
       "publisher": "CN=68612B10-F183-498F-BFEA-26EBB1A967C1",
       "publisherDisplayName": "Reevun Software LLC",
       "displayName": "Reevun",
-      "backgroundColor": "#0a0a0a",
+      "backgroundColor": "#ffffff",
       "showNameOnTiles": true,
       "languages": ["en-US", "ru-RU", "de-DE", "es-ES", "tr-TR", "zh-CN"]
     },

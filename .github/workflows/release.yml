@@ -21,15 +21,15 @@ jobs:
   release:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           path: windows-app
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           repository: reevun-software/app-core
           token: ${{ secrets.DESKTOP_CI_TOKEN }}
           path: app-core
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
       - name: Version

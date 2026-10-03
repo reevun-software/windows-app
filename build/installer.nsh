@@ -53,11 +53,11 @@ Var WantStartMenu
 
 !endif
 
+; Inserted right after the folder page, once the installer's interface
+; (MUI) is loaded - so the page and its functions are defined here.
 !macro customPageAfterChangeDir
   Page custom ShortcutsPageShow ShortcutsPageLeave
-!macroend
 
-!ifndef BUILD_UNINSTALLER
 Function ShortcutsPageShow
   !insertmacro reevunTexts
   !insertmacro MUI_HEADER_TEXT "$ShortcutsTitle" "$ShortcutsHint"
@@ -90,7 +90,7 @@ Function ShortcutsPageLeave
     StrCpy $WantStartMenu "0"
   ${EndIf}
 FunctionEnd
-!endif
+!macroend
 
 !macro customInstall
   ${IfNot} ${isUpdated}

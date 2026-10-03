@@ -35,13 +35,16 @@
       "artifactName": "Reevun-Setup-${version}-${arch}.${ext}"
     },
     "nsis": {
-      "oneClick": true,
+      "oneClick": false,
       "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": false,
+      "createStartMenuShortcut": false,
       "runAfterFinish": true,
-      "createDesktopShortcut": "always",
-      "createStartMenuShortcut": true,
       "shortcutName": "Reevun",
       "deleteAppDataOnUninstall": false,
+      "include": "build/installer.nsh",
       "multiLanguageInstaller": true,
       "installerLanguages": ["ru_RU", "en_US", "de_DE", "es_ES", "tr_TR", "zh_CN"]
     },

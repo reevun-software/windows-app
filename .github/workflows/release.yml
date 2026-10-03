@@ -1,0 +1,45 @@
+name: Release
+
+# Builds the Windows installers and publishes them as a GitHub release, which
+# the installed apps pick up as an update. Runs on every change here and on
+# every change to app-core (app-core sends "core-updated").
+on:
+  push:
+    branches: [main]
+  repository_dispatch:
+    types: [core-updated]
+  workflow_dispatch:
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: windows-app
+      - uses: actions/checkout@v4
+        with:
+          repository: reevun-software/app-core
+          token: ${{ secrets.DESKTOP_CI_TOKEN }}
+          path: app-core
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Version
+        working-directory: windows-app
+        run: npm version "1.0.${{ github.run_number }}" --no-git-tag-version
+      - name: Install
+        working-directory: windows-app
+        run: npm ci
+      - name: Build and publish
+        working-directory: windows-app
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run release

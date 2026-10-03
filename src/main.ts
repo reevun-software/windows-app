@@ -4,20 +4,17 @@ import { app } from "electron";
 // loaded from there at run time, and typed from there at build time.
 const { startApp } = require("./core/electron/main") as typeof import("../dist/core/electron/main");
 
-// Windows draws its own minimize / maximize / close buttons over the app's
-// title strip (titleBarOverlay); the strip leaves room for them. The buttons
-// stop a pixel short of the strip's bottom edge, so its divider line runs
-// under them too instead of breaking off.
+// The app draws its own minimize / maximize / close buttons in its title
+// strip (the system's overlay buttons left a seam under them and showed
+// their tooltips twice); the window keeps its resize edges and snapping.
 const TITLE_BAR_HEIGHT = 36;
-const CAPTION_BUTTONS_WIDTH = 138;
 
 startApp({
   platform: "windows",
   window: {
     titleBarStyle: "hidden",
-    titleBarOverlay: { color: "#fbfbfa", symbolColor: "#37352f", height: TITLE_BAR_HEIGHT - 1 },
   },
-  titleBar: { height: TITLE_BAR_HEIGHT, insetLeft: 0, insetRight: CAPTION_BUTTONS_WIDTH },
+  titleBar: { height: TITLE_BAR_HEIGHT, insetLeft: 0, insetRight: 0, windowButtons: true },
   // Notifications and the taskbar group the app under its own name (the
   // Store package already carries one).
   onReady: () => {

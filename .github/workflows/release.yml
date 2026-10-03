@@ -55,3 +55,11 @@ jobs:
         run: >
           gh release create "v${{ env.VERSION }}" --title "Reevun ${{ env.VERSION }}" --notes "" --latest
           release/Reevun_Setup.exe release/latest.yml
+      # The Microsoft Store package: uploaded to Partner Center by hand, so it
+      # stays with the run rather than in the public release.
+      - name: Store package
+        uses: actions/upload-artifact@v5
+        with:
+          name: Reevun-Store-${{ env.VERSION }}
+          path: windows-app/release/Reevun.appx
+          if-no-files-found: error

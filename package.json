@@ -29,11 +29,11 @@
     "directories": { "output": "release", "buildResources": "build" },
     "files": ["dist/**/*", "package.json"],
     "win": {
-      "target": [{ "target": "nsis", "arch": ["x64"] }],
-      "icon": "build/icon.ico",
-      "artifactName": "Reevun_Setup.${ext}"
+      "target": [{ "target": "nsis", "arch": ["x64"] }, { "target": "appx", "arch": ["x64"] }],
+      "icon": "build/icon.ico"
     },
     "nsis": {
+      "artifactName": "Reevun_Setup.${ext}",
       "oneClick": false,
       "perMachine": false,
       "allowElevation": true,
@@ -46,6 +46,17 @@
       "include": "build/installer.nsh",
       "multiLanguageInstaller": true,
       "installerLanguages": ["ru_RU", "en_US", "de_DE", "es_ES", "tr_TR", "zh_CN"]
+    },
+    "appx": {
+      "artifactName": "Reevun.${ext}",
+      "applicationId": "Reevun",
+      "identityName": "ReevunSoftwareLLC.Reevun",
+      "publisher": "CN=68612B10-F183-498F-BFEA-26EBB1A967C1",
+      "publisherDisplayName": "Reevun Software LLC",
+      "displayName": "Reevun",
+      "backgroundColor": "#0a0a0a",
+      "showNameOnTiles": true,
+      "languages": ["en-US", "ru-RU", "de-DE", "es-ES", "tr-TR", "zh-CN"]
     },
     "publish": [{ "provider": "github", "owner": "reevun-software", "repo": "windows-app", "releaseType": "release" }]
   }

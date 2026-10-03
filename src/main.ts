@@ -16,6 +16,9 @@ startApp({
     titleBarOverlay: { color: "#101010", symbolColor: "#a3a3a3", height: TITLE_BAR_HEIGHT },
   },
   titleBar: { height: TITLE_BAR_HEIGHT, insetLeft: 0, insetRight: CAPTION_BUTTONS_WIDTH },
-  // Notifications and the taskbar group the app under its own name.
-  onReady: () => app.setAppUserModelId("app.reevun.desktop"),
+  // Notifications and the taskbar group the app under its own name (the
+  // Store package already carries one).
+  onReady: () => {
+    if (!process.windowsStore) app.setAppUserModelId("app.reevun.desktop");
+  },
 });

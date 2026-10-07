@@ -1,6 +1,9 @@
 bin/
 obj/
 /publish
-/releases
+/release
+/store
+# Fetched by the release workflow.
+/Installer/ChineseSimplified.isl
 # Built from app-core by the release workflow.
 /Screens/index.html

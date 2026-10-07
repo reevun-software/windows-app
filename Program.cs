@@ -1,7 +1,6 @@
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.AppLifecycle;
-using Velopack;
 
 namespace Reevun;
 
@@ -14,8 +13,6 @@ public static class Program
     [STAThread]
     private static void Main()
     {
-        // Velopack's install, update and uninstall steps run (and exit) here.
-        VelopackApp.Build().Run();
         WinRT.ComWrappersSupport.InitializeComWrappers();
 
         // One app at a time: starting it again brings the open window forward.

@@ -1,7 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- Reevun for Windows: WinUI 3 and WebView2, installed and updated by
-       Velopack, or packaged for the Microsoft Store (WindowsPackageType=MSIX). -->
+  <!-- Reevun for Windows: WinUI 3 and WebView2, installed by Reevun_Setup.exe
+       (Installer\Reevun.iss) and updating itself (Updates.cs), or packaged
+       for the Microsoft Store (WindowsPackageType=MSIX). -->
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
@@ -15,7 +16,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <!-- Program.cs starts the app (Velopack first). -->
+    <!-- Program.cs starts the app (one at a time). -->
     <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
     <WindowsPackageType Condition="'$(WindowsPackageType)' == ''">None</WindowsPackageType>
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
@@ -31,9 +32,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.5.1" />
-    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4258.31" />
-    <PackageReference Include="Velopack" Version="1.2.161" />
-  </ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4258.31" />  </ItemGroup>
 
   <ItemGroup>
     <Content Include="Assets\**" CopyToOutputDirectory="PreserveNewest" />

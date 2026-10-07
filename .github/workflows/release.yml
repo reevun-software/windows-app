@@ -1,9 +1,9 @@
 name: Release
 
-# Builds Reevun for Windows, publishes it with Velopack as a GitHub release
-# (the installer, and the update packages installed apps pick up), and keeps
-# the Microsoft Store package with the run. Runs on every change here and on
-# every change to app-core (app-core sends "core-updated").
+# Builds Reevun for Windows, publishes its installer (Reevun_Setup.exe,
+# which installed apps also update themselves with) as a GitHub release, and
+# keeps the Microsoft Store package with the run. Runs on every change here
+# and on every change to app-core (app-core sends "core-updated").
 on:
   push:
     branches: [main]
@@ -49,14 +49,25 @@ jobs:
       - name: Build
         working-directory: windows-app
         run: dotnet publish -c Release -p:Platform=x64 -p:Version=${{ env.VERSION }} -o publish
-      # Started once to check it opens; the screen after a while goes into
-      # the log (a small JPEG, base64) to look at.
-      - name: Start
+      # Inno Setup, with its Chinese translation (not among the ones it ships).
+      - name: Installer
         working-directory: windows-app
         shell: pwsh
         run: |
-          $app = Start-Process publish\Reevun.exe -PassThru
-          Start-Sleep 25
+          choco install innosetup -y --no-progress
+          Invoke-WebRequest https://raw.githubusercontent.com/jrsoftware/issrc/main/Files/Languages/Unofficial/ChineseSimplified.isl -OutFile Installer\ChineseSimplified.isl
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" /Q "/DVersion=${{ env.VERSION }}" Installer\Reevun.iss
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+      # Installed and started as a person would (through the update check);
+      # the screen after a while goes into the log (a small JPEG, base64) to
+      # look at.
+      - name: Install and start
+        working-directory: windows-app
+        shell: pwsh
+        run: |
+          Start-Process release\Reevun_Setup.exe -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART" -Wait
+          $app = Start-Process "$env:LOCALAPPDATA\Programs\Reevun\Reevun.exe" -PassThru
+          Start-Sleep 30
           Add-Type -AssemblyName System.Windows.Forms, System.Drawing
           $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
           $bitmap = New-Object System.Drawing.Bitmap $bounds.Width, $bounds.Height
@@ -74,23 +85,15 @@ jobs:
             Get-WinEvent -LogName Application -MaxEvents 20 | Where-Object ProviderName -in '.NET Runtime', 'Application Error' | Format-List TimeCreated, ProviderName, Message
             exit 1
           }
-          Stop-Process -Id $app.Id
-      - name: Package
-        working-directory: windows-app
-        run: |
-          dotnet tool install -g vpk
-          vpk pack --packId Reevun --packVersion ${{ env.VERSION }} --packDir publish --mainExe Reevun.exe --packTitle Reevun --packAuthors "Reevun Software LLC" --icon Assets\icon.ico --shortcuts Desktop,StartMenuRoot --outputDir releases
-      # The installer also as Reevun_Setup.exe, so
-      # .../releases/latest/download/Reevun_Setup.exe is a permanent link.
+          Get-Process Reevun | Stop-Process
+      # Always Reevun_Setup.exe, so .../releases/latest/download/Reevun_Setup.exe
+      # is a permanent download link.
       - name: Publish
         working-directory: windows-app
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          vpk upload github --repoUrl https://github.com/${{ github.repository }} --token "$GH_TOKEN" --outputDir releases --publish --releaseName "Reevun $VERSION" --tag "v$VERSION"
-          cp releases/Reevun-win-Setup.exe Reevun_Setup.exe
-          gh release upload "v$VERSION" Reevun_Setup.exe
+        run: gh release create "v$VERSION" --title "Reevun $VERSION" --notes "" --latest release/Reevun_Setup.exe
       # The Microsoft Store package: uploaded to Partner Center by hand, so
       # it stays with the run rather than in the public release.
       - name: Store package

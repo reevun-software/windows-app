@@ -1,3 +1,6 @@
-node_modules/
-dist/
-release/
+bin/
+obj/
+/publish
+/releases
+# Built from app-core by the release workflow.
+/Screens/index.html

@@ -1,7 +1,8 @@
 name: Release
 
-# Builds the Windows installers and publishes them as a GitHub release, which
-# the installed apps pick up as an update. Runs on every change here and on
+# Builds Reevun for Windows, publishes it with Velopack as a GitHub release
+# (the installer, and the update packages installed apps pick up), and keeps
+# the Microsoft Store package with the run. Runs on every change here and on
 # every change to app-core (app-core sends "core-updated").
 on:
   push:
@@ -34,32 +35,65 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22
-      - name: Version
-        working-directory: windows-app
-        run: npm version "${{ env.VERSION }}" --no-git-tag-version
-      - name: Install
-        working-directory: windows-app
-        run: npm ci
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+      # The app's own screens, one self-contained page built into the app.
+      - name: Screens
+        shell: bash
+        run: |
+          npm --prefix app-core ci
+          npm --prefix app-core run build
+          mkdir -p windows-app/Screens
+          cp app-core/dist/index.html windows-app/Screens/
       - name: Build
         working-directory: windows-app
-        run: npm run dist
-      # One call creates the release with both files at once: the installer
-      # (always Reevun_Setup.exe, so .../releases/latest/download/Reevun_Setup.exe
-      # is a permanent download link) and latest.yml, which installed apps read
-      # for updates.
+        run: dotnet publish -c Release -p:Platform=x64 -p:Version=${{ env.VERSION }} -o publish
+      # Started once to check it opens; the screen after a while goes into
+      # the log (a small JPEG, base64) to look at.
+      - name: Start
+        working-directory: windows-app
+        shell: pwsh
+        run: |
+          $app = Start-Process publish\Reevun.exe -PassThru
+          Start-Sleep 25
+          Add-Type -AssemblyName System.Windows.Forms, System.Drawing
+          $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+          $bitmap = New-Object System.Drawing.Bitmap $bounds.Width, $bounds.Height
+          [System.Drawing.Graphics]::FromImage($bitmap).CopyFromScreen($bounds.Location, [System.Drawing.Point]::Empty, $bounds.Size)
+          $small = New-Object System.Drawing.Bitmap $bitmap, ([int]($bounds.Width * 0.6)), ([int]($bounds.Height * 0.6))
+          $codec = [System.Drawing.Imaging.ImageCodecInfo]::GetImageEncoders() | Where-Object MimeType -eq 'image/jpeg'
+          $quality = New-Object System.Drawing.Imaging.EncoderParameters 1
+          $quality.Param[0] = New-Object System.Drawing.Imaging.EncoderParameter ([System.Drawing.Imaging.Encoder]::Quality), 60L
+          $small.Save("screen.jpg", $codec, $quality)
+          $text = [Convert]::ToBase64String([IO.File]::ReadAllBytes("screen.jpg"))
+          "SCREEN-BEGIN"; for ($i = 0; $i -lt $text.Length; $i += 1000) { $text.Substring($i, [Math]::Min(1000, $text.Length - $i)) }; "SCREEN-END"
+          Stop-Process -Id $app.Id
+      - name: Package
+        working-directory: windows-app
+        run: |
+          dotnet tool install -g vpk
+          vpk pack --packId Reevun --packVersion ${{ env.VERSION }} --packDir publish --mainExe Reevun.exe --packTitle Reevun --packAuthors "Reevun Software LLC" --icon Assets\icon.ico --shortcuts Desktop,StartMenuRoot --outputDir releases
+      # The installer also as Reevun_Setup.exe, so
+      # .../releases/latest/download/Reevun_Setup.exe is a permanent link.
       - name: Publish
         working-directory: windows-app
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-        run: >
-          gh release create "v${{ env.VERSION }}" --title "Reevun ${{ env.VERSION }}" --notes "" --latest
-          release/Reevun_Setup.exe release/latest.yml
-      # The Microsoft Store package: uploaded to Partner Center by hand, so it
-      # stays with the run rather than in the public release.
+        run: |
+          vpk upload github --repoUrl https://github.com/${{ github.repository }} --token "$GH_TOKEN" --outputDir releases --publish --releaseName "Reevun $VERSION" --tag "v$VERSION"
+          cp releases/Reevun-win-Setup.exe Reevun_Setup.exe
+          gh release upload "v$VERSION" Reevun_Setup.exe
+      # The Microsoft Store package: uploaded to Partner Center by hand, so
+      # it stays with the run rather than in the public release.
       - name: Store package
-        uses: actions/upload-artifact@v5
+        working-directory: windows-app
+        run: >
+          dotnet publish -c Release -p:Platform=x64 -p:Version=${{ env.VERSION }} -p:WindowsPackageType=MSIX
+          -p:GenerateAppxPackageOnBuild=true -p:AppxPackageSigningEnabled=false -p:AppxPackageDir=store\
+      - uses: actions/upload-artifact@v5
         with:
           name: Reevun-Store-${{ env.VERSION }}
-          path: windows-app/release/Reevun.appx
+          path: windows-app/store/**/*.msix
           if-no-files-found: error

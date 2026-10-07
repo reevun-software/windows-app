@@ -1,0 +1,15 @@
+<Window x:Class="Reevun.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Reevun">
+  <!-- The app's title strip on top, the site under it, and the loading
+       screen over the site (added in code). -->
+  <Grid Background="White">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="36" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+    <Grid x:Name="Strip" Grid.Row="0" Background="#FBFBFA" />
+    <Grid x:Name="SiteArea" Grid.Row="1" Background="White" />
+  </Grid>
+</Window>

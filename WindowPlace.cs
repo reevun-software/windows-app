@@ -6,7 +6,7 @@ namespace Reevun;
 
 // The window reopens where the person left it (and maximized if it was), as
 // long as that spot is still on a connected display.
-public static class Bounds
+public static class WindowPlace
 {
     private record Saved(int X, int Y, int Width, int Height, bool Maximized);
 

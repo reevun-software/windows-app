@@ -27,7 +27,7 @@ public static class Program
             return;
         }
 
-        Application.Start(_ =>
+        Application.Start(start =>
         {
             SynchronizationContext.SetSynchronizationContext(new DispatcherQueueSynchronizationContext(DispatcherQueue.GetForCurrentThread()));
             _ = new App(main);

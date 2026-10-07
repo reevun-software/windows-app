@@ -42,7 +42,7 @@ public sealed partial class MainWindow : Window
         ExtendsContentIntoTitleBar = true;
         Presenter.SetBorderAndTitleBar(true, false);
         var scale = Win32.Scale(this);
-        Bounds.Restore(AppWindow, scale);
+        WindowPlace.Restore(AppWindow, scale);
         AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets", "icon.ico"));
         Presenter.PreferredMinimumWidth = (int)(960 * scale);
         Presenter.PreferredMinimumHeight = (int)(620 * scale);
@@ -55,7 +55,7 @@ public sealed partial class MainWindow : Window
         };
         AppWindow.Closing += (_, _) =>
         {
-            Bounds.Save(AppWindow);
+            WindowPlace.Save(AppWindow);
             _signIn?.Dispose();
         };
         SiteArea.Children.Add(_site);

@@ -41,6 +41,7 @@ public sealed partial class MainWindow : Window
         InitializeComponent();
         ExtendsContentIntoTitleBar = true;
         Presenter.SetBorderAndTitleBar(true, false);
+        Win32.NoBorderLine(this);
         var scale = Win32.Scale(this);
         WindowPlace.Restore(AppWindow, scale);
         AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets", "icon.ico"));

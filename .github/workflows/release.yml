@@ -62,27 +62,36 @@ jobs:
           else { Invoke-WebRequest https://raw.githubusercontent.com/jrsoftware/issrc/is-6_4_3/Files/Languages/Unofficial/ChineseSimplified.isl -OutFile Installer\ChineseSimplified.isl }
           & "$inno\ISCC.exe" /Q "/DVersion=${{ env.VERSION }}" Installer\Reevun.iss
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
-      # Installed and started as a person would (through the update check);
-      # the screen after a while goes into the log (a small JPEG, base64) to
-      # look at.
+      # Installed and started as a person would (through the update check),
+      # then "Sign in" pressed; the screen each time goes into the log (a
+      # small JPEG, base64) to look at.
       - name: Install and start
         working-directory: windows-app
         shell: pwsh
         run: |
           Start-Process release\Reevun_Setup.exe -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART" -Wait
           $app = Start-Process "$env:LOCALAPPDATA\Programs\Reevun\Reevun.exe" -PassThru
-          Start-Sleep 30
           Add-Type -AssemblyName System.Windows.Forms, System.Drawing
-          $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
-          $bitmap = New-Object System.Drawing.Bitmap $bounds.Width, $bounds.Height
-          [System.Drawing.Graphics]::FromImage($bitmap).CopyFromScreen($bounds.Location, [System.Drawing.Point]::Empty, $bounds.Size)
-          $small = New-Object System.Drawing.Bitmap $bitmap, ([int]($bounds.Width * 0.6)), ([int]($bounds.Height * 0.6))
-          $codec = [System.Drawing.Imaging.ImageCodecInfo]::GetImageEncoders() | Where-Object MimeType -eq 'image/jpeg'
-          $quality = New-Object System.Drawing.Imaging.EncoderParameters 1
-          $quality.Param[0] = New-Object System.Drawing.Imaging.EncoderParameter ([System.Drawing.Imaging.Encoder]::Quality), 60L
-          $small.Save("screen.jpg", $codec, $quality)
-          $text = [Convert]::ToBase64String([IO.File]::ReadAllBytes("screen.jpg"))
-          "SCREEN-BEGIN"; for ($i = 0; $i -lt $text.Length; $i += 1000) { $text.Substring($i, [Math]::Min(1000, $text.Length - $i)) }; "SCREEN-END"
+          Add-Type -Namespace Win -Name Mouse -MemberDefinition '[DllImport("user32.dll")] public static extern void mouse_event(int flags, int x, int y, int data, int extra);'
+          function Screen($name) {
+            $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+            $bitmap = New-Object System.Drawing.Bitmap $bounds.Width, $bounds.Height
+            [System.Drawing.Graphics]::FromImage($bitmap).CopyFromScreen($bounds.Location, [System.Drawing.Point]::Empty, $bounds.Size)
+            $small = New-Object System.Drawing.Bitmap $bitmap, ([int]($bounds.Width * 0.6)), ([int]($bounds.Height * 0.6))
+            $codec = [System.Drawing.Imaging.ImageCodecInfo]::GetImageEncoders() | Where-Object MimeType -eq 'image/jpeg'
+            $quality = New-Object System.Drawing.Imaging.EncoderParameters 1
+            $quality.Param[0] = New-Object System.Drawing.Imaging.EncoderParameter ([System.Drawing.Imaging.Encoder]::Quality), 60L
+            $small.Save("$name.jpg", $codec, $quality)
+            $text = [Convert]::ToBase64String([IO.File]::ReadAllBytes("$name.jpg"))
+            "$name-BEGIN"; for ($i = 0; $i -lt $text.Length; $i += 1000) { $text.Substring($i, [Math]::Min(1000, $text.Length - $i)) }; "$name-END"
+          }
+          Start-Sleep 30
+          Screen "SCREEN"
+          # "Sign in", in the middle of the page as it opens on this screen.
+          [System.Windows.Forms.Cursor]::Position = New-Object System.Drawing.Point 510, 473
+          [Win.Mouse]::mouse_event(2, 0, 0, 0, 0); [Win.Mouse]::mouse_event(4, 0, 0, 0, 0)
+          Start-Sleep 8
+          Screen "SIGNIN"
           if ($app.HasExited) {
             "The app closed by itself (exit code $($app.ExitCode)):"
             Get-Content "$env:LOCALAPPDATA\Reevun\crash.log" -ErrorAction SilentlyContinue

@@ -112,6 +112,7 @@ public static class Updates
             presenter.IsMinimizable = false;
             presenter.SetBorderAndTitleBar(true, false);
         }
+        Win32.NoBorderLine(window);
         var area = DisplayArea.Primary.WorkArea;
         window.AppWindow.Move(new Windows.Graphics.PointInt32(area.X + (area.Width - window.AppWindow.Size.Width) / 2, area.Y + (area.Height - window.AppWindow.Size.Height) / 2));
         return window;

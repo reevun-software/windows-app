@@ -12,6 +12,13 @@ public partial class App : Application
     {
         _instance = instance;
         InitializeComponent();
+        // What made the app close, kept next to its other files to look at.
+        UnhandledException += (_, args) =>
+        {
+            var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Reevun");
+            Directory.CreateDirectory(folder);
+            File.AppendAllText(Path.Combine(folder, "crash.log"), $"{DateTime.UtcNow:O} {args.Exception}\n\n");
+        };
     }
 
     // The first start checks for an update (Updates) before the window

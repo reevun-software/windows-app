@@ -70,6 +70,7 @@ jobs:
           "SCREEN-BEGIN"; for ($i = 0; $i -lt $text.Length; $i += 1000) { $text.Substring($i, [Math]::Min(1000, $text.Length - $i)) }; "SCREEN-END"
           if ($app.HasExited) {
             "The app closed by itself (exit code $($app.ExitCode)):"
+            Get-Content "$env:LOCALAPPDATA\Reevun\crash.log" -ErrorAction SilentlyContinue
             Get-WinEvent -LogName Application -MaxEvents 20 | Where-Object ProviderName -in '.NET Runtime', 'Application Error' | Format-List TimeCreated, ProviderName, Message
             exit 1
           }

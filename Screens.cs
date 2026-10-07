@@ -14,10 +14,12 @@ public static class Screens
 {
     private const string Host = "screens.reevun.local";
 
-    // `page`: "launch", "titlebar" or "loading". Each message goes to
+    // `page`: "launch", "titlebar" or "loading", ready once the page has
+    // loaded (so a window shows it drawn, never blank). Each message goes to
     // `handle`, whose answer (if any) goes back.
     public static async Task<WebView2> ViewAsync(string page, Func<string, JsonArray, JsonNode?> handle)
     {
+        var loaded = new TaskCompletionSource();
         var view = new WebView2 { DefaultBackgroundColor = Microsoft.UI.Colors.Transparent };
         await view.EnsureCoreWebView2Async(await WebEnvironment.GetAsync());
         var core = view.CoreWebView2;
@@ -38,7 +40,11 @@ public static class Screens
             var result = handle(method, message["args"] as JsonArray ?? []);
             if (message["id"] is { } id) Send(view, new JsonObject { ["id"] = id.DeepClone(), ["result"] = result });
         };
+        core.NavigationCompleted += (_, _) => loaded.TrySetResult();
         core.Navigate($"https://{Host}/index.html#{page}");
+        // Its page draws itself once the app has answered "info": a moment
+        // more. Never waits long, whatever happens.
+        await Task.WhenAny(loaded.Task.ContinueWith(_ => Task.Delay(150)).Unwrap(), Task.Delay(TimeSpan.FromSeconds(3)));
         return view;
     }
 

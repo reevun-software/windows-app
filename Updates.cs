@@ -35,14 +35,14 @@ public static class Updates
     private record Asset(string Name, [property: JsonPropertyName("browser_download_url")] string Url, string? Digest);
     private record LatestRelease([property: JsonPropertyName("tag_name")] string Tag, Asset[] Assets);
 
-    // `open` opens the app's window: right away when there's nothing to
-    // check or no newer version; not at all when the new version is being
-    // installed (it starts by itself).
-    public static async Task OnLaunchAsync(Action open)
+    // `open` opens the app's window (done once it's on screen): right away
+    // when there's nothing to check or no newer version; not at all when the
+    // new version is being installed (it starts by itself).
+    public static async Task OnLaunchAsync(Func<Task> open)
     {
         if (!Installed)
         {
-            open();
+            await open();
             return;
         }
         var window = LaunchWindow();
@@ -71,7 +71,7 @@ public static class Updates
         }
         catch (Exception) { }
         // The app's window first: the last window closing ends the app.
-        open();
+        await open();
         window.Close();
     }
 

@@ -33,6 +33,11 @@ public sealed partial class MainWindow : Window
     private SiteState _state = SiteState.Loading;
     private bool _failed;
     private SignIn? _signIn;
+    private readonly TaskCompletionSource _shown = new();
+
+    // Done once the window is on screen with its strip and loading screen
+    // drawn (it never shows blank).
+    public Task Shown => _shown.Task;
 
     private OverlappedPresenter Presenter => (OverlappedPresenter)AppWindow.Presenter;
 
@@ -74,6 +79,8 @@ public sealed partial class MainWindow : Window
         _strip = await Screens.ViewAsync("titlebar", StripMessage);
         Strip.Children.Add(_strip);
         await ShowOverlayAsync(SiteState.Loading);
+        Activate();
+        _shown.TrySetResult();
 
         await _site.EnsureCoreWebView2Async(await WebEnvironment.GetAsync());
         var core = _site.CoreWebView2;

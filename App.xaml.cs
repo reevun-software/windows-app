@@ -26,10 +26,10 @@ public partial class App : Application
     protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
         _instance.Activated += (_, _) => _window?.DispatcherQueue.TryEnqueue(() => _window.BringForward());
-        await Updates.OnLaunchAsync(() =>
+        await Updates.OnLaunchAsync(async () =>
         {
             _window = new MainWindow();
-            _window.Activate();
+            await _window.Shown;
             Updates.KeepChecking(_window);
         });
     }

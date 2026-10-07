@@ -49,14 +49,18 @@ jobs:
       - name: Build
         working-directory: windows-app
         run: dotnet publish -c Release -p:Platform=x64 -p:Version=${{ env.VERSION }} -o publish
-      # Inno Setup, with its Chinese translation (not among the ones it ships).
+      # Inno Setup (on the runner already), with its Chinese translation:
+      # shipped with it in newer versions, else from its source.
       - name: Installer
         working-directory: windows-app
         shell: pwsh
         run: |
-          choco install innosetup -y --no-progress
-          Invoke-WebRequest https://raw.githubusercontent.com/jrsoftware/issrc/main/Files/Languages/Unofficial/ChineseSimplified.isl -OutFile Installer\ChineseSimplified.isl
-          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" /Q "/DVersion=${{ env.VERSION }}" Installer\Reevun.iss
+          $inno = "${env:ProgramFiles(x86)}\Inno Setup 6"
+          if (-not (Test-Path "$inno\ISCC.exe")) { choco install innosetup -y --no-progress }
+          $chinese = "$inno\Languages\ChineseSimplified.isl"
+          if (Test-Path $chinese) { Copy-Item $chinese Installer\ }
+          else { Invoke-WebRequest https://raw.githubusercontent.com/jrsoftware/issrc/is-6_4_3/Files/Languages/Unofficial/ChineseSimplified.isl -OutFile Installer\ChineseSimplified.isl }
+          & "$inno\ISCC.exe" /Q "/DVersion=${{ env.VERSION }}" Installer\Reevun.iss
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
       # Installed and started as a person would (through the update check);
       # the screen after a while goes into the log (a small JPEG, base64) to

@@ -11,6 +11,7 @@ public static class Site
 {
     public static readonly string Url = (Environment.GetEnvironmentVariable("REEVUN_SITE_URL") ?? "https://reevun.app").TrimEnd('/');
     public static readonly string IdUrl = (Environment.GetEnvironmentVariable("REEVUN_ID_URL") ?? "https://id.reevun.app").TrimEnd('/');
+    public static readonly string ApiUrl = (Environment.GetEnvironmentVariable("REEVUN_API_URL") ?? "https://api.reevun.app").TrimEnd('/');
 
     private static bool InAppHost(string host) =>
         host == "reevun.app" || host.EndsWith(".reevun.app") || host == "discord.com" || host == "www.discord.com";

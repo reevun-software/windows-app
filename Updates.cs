@@ -134,9 +134,11 @@ public static class Updates
         using var response = await Http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
         response.EnsureSuccessStatusCode();
         var total = response.Content.Headers.ContentLength ?? 0;
-        var file = Path.Combine(Path.GetTempPath(), Installer);
+        var directory = Path.Combine(Path.GetTempPath(), $"reevun-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(directory);
+        var file = Path.Combine(directory, Installer);
         await using (var source = await response.Content.ReadAsStreamAsync())
-        await using (var target = File.Create(file))
+        await using (var target = new FileStream(file, FileMode.CreateNew, FileAccess.Write, FileShare.None))
         {
             var buffer = new byte[1 << 16];
             long done = 0;
@@ -151,7 +153,10 @@ public static class Updates
         await using (var written = File.OpenRead(file))
         {
             if (!Convert.ToHexString(await SHA256.HashDataAsync(written)).Equals(checksum, StringComparison.OrdinalIgnoreCase))
+            {
+                Directory.Delete(directory, true);
                 throw new InvalidDataException("checksum");
+            }
         }
         return file;
     }
